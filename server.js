@@ -1,0 +1,51 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config(); // Load environment variables
+console.log('MONGO_URI:', process.env.MONGO_URI); // Debugging: Check if MONGO_URI is loaded
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json()); // Parse JSON body data
+
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB connected'))
+    .catch((err) => console.log('MongoDB connection error:', err));
+
+// Route
+const storiesRoute = require('./routes/stories'); // Ensure this path is correct
+app.use('/api/stories', storiesRoute); // Corrected route mounting
+
+// Health Check Endpoint
+app.get('/health', async (req, res) => {
+    const dbState = mongoose.connection.readyState;
+    const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+    res.json({ server: 'running', database: states[dbState] });
+});
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
+});
+
+
+// Import Routes
+// const likeRoutes = require("./routes/likeRoute");
+
+// Use Routes
+// app.use("/api/stories", likeRoutes);
+
+// Start Server
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
