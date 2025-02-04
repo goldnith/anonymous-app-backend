@@ -14,7 +14,7 @@ const limiter = rateLimit({
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: [process.env.FRONTEND_URL, process.env.BACKEND_URL],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
