@@ -29,13 +29,20 @@ app.use('/api/stories', storiesRoute); // Corrected route mounting
 app.get('/health', async (req, res) => {
     const dbState = mongoose.connection.readyState;
     const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
-    res.json({ server: 'running', database: states[dbState] });
+    res.json({ 
+        status: 'ok',
+        server: 'running', 
+        database: states[dbState] 
+      });
 });
 
 // 404 Handler
 app.use((req, res) => {
-    res.status(404).json({ message: 'Route not found' });
-});
+    res.status(404).json({ 
+      success: false,
+      message: `Route ${req.originalUrl} not found`
+    });
+  });
 
 // Global Error Handler
 // app.use((err, req, res, next) => {
