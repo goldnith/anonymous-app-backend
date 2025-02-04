@@ -5,7 +5,7 @@ require('dotenv').config(); // Load environment variables
 console.log('MONGO_URI:', process.env.MONGO_URI); // Debugging: Check if MONGO_URI is loaded
 
 const app = express();
-const FRONTEND_URL = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10000;
 
 const { corsOptions, errorHandler, requestLogger } = require('./middleware/middleware');
 
