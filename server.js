@@ -5,11 +5,16 @@ require('dotenv').config(); // Load environment variables
 console.log('MONGO_URI:', process.env.MONGO_URI); // Debugging: Check if MONGO_URI is loaded
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.PORT || 10000;
+
+const { corsOptions, errorHandler, requestLogger } = require('./middleware/middleware');
+
+
 
 // Middleware
-app.use(cors());
-app.use(express.json()); // Parse JSON body data
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(requestLogger);
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
@@ -33,10 +38,12 @@ app.use((req, res) => {
 });
 
 // Global Error Handler
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: 'Something went wrong!' });
-});
+// app.use((err, req, res, next) => {
+//     console.error(err.stack);
+//     res.status(500).json({ message: 'Something went wrong!' });
+// });
+
+app.use(errorHandler);
 
 
 // Import Routes
@@ -46,6 +53,6 @@ app.use((err, req, res, next) => {
 // app.use("/api/stories", likeRoutes);
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on ${PORT}`);
 });
