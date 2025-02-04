@@ -14,7 +14,7 @@ const limiter = rateLimit({
 
 // CORS configuration
 const corsOptions = {
-  origin: [process.env.FRONTEND_URL, process.env.BACKEND_URL],
+  origin: ['https://alien-stories.vercel.app', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

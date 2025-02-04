@@ -12,6 +12,7 @@ const { corsOptions, errorHandler, requestLogger } = require('./middleware/middl
 
 
 // Middleware
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(requestLogger);
