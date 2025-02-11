@@ -26,6 +26,10 @@ mongoose.connect(process.env.MONGO_URI)
 const storiesRoute = require('./routes/stories'); // Ensure this path is correct
 app.use('/api/stories', storiesRoute); // Corrected route mounting
 
+const commentsRoute = require('./routes/comments'); // Ensure this path is correct
+app.use('/api/comments', commentsRoute); // Corrected route mounting
+
+
 // Health Check Endpoint
 app.get('/health', async (req, res) => {
     const dbState = mongoose.connection.readyState;
