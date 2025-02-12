@@ -162,5 +162,15 @@ router.delete("/:commentId", async (req, res) => {
   }
 });
 
+router.get("/:storyId/count", async (req, res) => {
+  try {
+    const { storyId } = req.params;
+    const count = await Comment.countDocuments({ storyId });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching comment count' });
+  }
+});
+
 
 module.exports = router;
