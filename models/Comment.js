@@ -18,7 +18,16 @@ const commentSchema = new mongoose.Schema({
     trim: true,
     minlength: [1, 'Comment cannot be empty'],
     maxlength: [500, 'Comment is too long']
-  }
+  },
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment',
+    default: null
+  },
+  replies: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment'
+  }]
 }, {
   timestamps: true
 });

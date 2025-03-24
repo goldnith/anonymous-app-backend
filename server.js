@@ -29,6 +29,10 @@ app.use('/api/stories', storiesRoute); // Corrected route mounting
 const commentsRoute = require('./routes/comments'); // Ensure this path is correct
 app.use('/api/comments', commentsRoute); // Corrected route mounting
 
+const pingRouter = require('./routes/ping');
+
+// Register ping route
+app.use('/api/ping', pingRouter);
 
 // Health Check Endpoint
 app.get('/health', async (req, res) => {
@@ -56,6 +60,15 @@ app.use((req, res) => {
 // });
 
 app.use(errorHandler);
+
+// app.get('/api/ping', (req, res) => {
+//   res.status(200).json({ 
+//     status: 'success',
+//     message: 'Server is alive',
+//     timestamp: new Date().toISOString()
+//   });
+// });
+
 
 
 // Import Routes

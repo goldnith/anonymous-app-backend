@@ -27,60 +27,31 @@ router.get("/:storyId", async (req, res) => {
   }
 });
 
-// Add a comment
-// router.post("/:storyId/comments", async (req, res) => {
+// router.get("/:storyId", async (req, res) => {
 //   try {
 //     const { storyId } = req.params;
-//     console.log('Story ID from URL:', storyId);
-//     const { userId, content } = req.body;
+    
+//     if (!storyId) {
+//       return res.status(400).json({ message: 'Story ID is required' });
+//     }
 
-//     console.log('Debug - Request:', {
+//     const comments = await Comment.find({ 
 //       storyId,
-//       userId,
-//       content,
-//       body: req.body
-//     });
+//       parentId: null // Only get top-level comments
+//     })
+//     .populate({
+//       path: 'replies',
+//       options: { sort: { createdAt: -1 } }
+//     })
+//     .sort({ createdAt: -1 });
 
-//     // Input validation
-//     if (!mongoose.Types.ObjectId.isValid(storyId)) {
-//       return res.status(400).json({ 
-//         message: 'Invalid story ID',
-//         received: storyId 
-//       });
-//     }
-
-//     if (!userId || !content) {
-//       return res.status(400).json({
-//         message: 'Missing required fields',
-//         received: { userId, content }
-//       });
-//     }
-
-//     // Find story
-//     const story = await Story.findById(storyId);
-//     if (!story) {
-//       return res.status(404).json({ message: 'Story not found' });
-//     }
-
-//     // Create and save comment
-//     const comment = new Comment({
-//       storyId: mongoose.Types.ObjectId(storyId),
-//       userId,
-//       content: content.trim()
-//     });
-
-//     const savedComment = await comment.save();
-//     console.log('Debug - Saved comment:', savedComment);
-
-//     res.status(201).json(savedComment);
+//     res.json(comments);
 //   } catch (error) {
-//     console.error('Comment creation error:', error);
-//     res.status(500).json({
-//       message: 'Error creating comment',
-//       error: error.message
-//     });
+//     console.error('Get comments error:', error);
+//     res.status(500).json({ message: 'Error fetching comments' });
 //   }
 // });
+
 
 // Add a comment
 router.post('/:storyId', async (req, res) => {
@@ -157,6 +128,91 @@ router.delete("/:commentId", async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting comment',
+      error: error.message
+    });
+  }
+});
+
+router.post('/:commentId/reply', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { userId, content } = req.body;
+
+    // Validate request
+    if (!userId || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    // Find parent comment
+    const parentComment = await Comment.findById(commentId);
+    if (!parentComment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Parent comment not found'
+      });
+    }
+
+    // Create reply
+    const reply = new Comment({
+      storyId: parentComment.storyId,
+      userId,
+      content,
+      parentId: commentId
+    });
+
+    const savedReply = await reply.save();
+
+    // Update parent comment with reply reference
+    await Comment.findByIdAndUpdate(
+      commentId,
+      { $push: { replies: savedReply._id } }
+    );
+
+    res.status(201).json({
+      success: true,
+      data: savedReply
+    });
+
+  } catch (error) {
+    console.error('Reply creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating reply',
+      error: error.message
+    });
+  }
+});
+
+// Get replies for a comment
+router.get('/:commentId/replies', async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const comment = await Comment.findById(commentId)
+      .populate({
+        path: 'replies',
+        options: { sort: { createdAt: -1 } }
+      });
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Comment not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: comment.replies
+    });
+
+  } catch (error) {
+    console.error('Fetch replies error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching replies',
       error: error.message
     });
   }
