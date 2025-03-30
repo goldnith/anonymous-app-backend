@@ -34,6 +34,9 @@ const pingRouter = require('./routes/ping');
 // Register ping route
 app.use('/api/ping', pingRouter);
 
+const subscribersRoute = require('./routes/subscribers');
+app.use('/api/subscribers', subscribersRoute);
+
 // Health Check Endpoint
 app.get('/health', async (req, res) => {
     const dbState = mongoose.connection.readyState;
@@ -68,6 +71,7 @@ app.use(errorHandler);
 //     timestamp: new Date().toISOString()
 //   });
 // });
+
 
 
 
