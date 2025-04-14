@@ -37,6 +37,12 @@ app.use('/api/ping', pingRouter);
 const subscribersRoute = require('./routes/subscribers');
 app.use('/api/subscribers', subscribersRoute);
 
+// Import Routes
+const searchRoute = require('./routes/search');
+
+// Use Routes before the 404 handler
+app.use('/api/search', searchRoute);
+
 // Health Check Endpoint
 app.get('/health', async (req, res) => {
     const dbState = mongoose.connection.readyState;
