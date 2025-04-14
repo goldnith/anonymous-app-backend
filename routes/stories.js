@@ -9,29 +9,57 @@ router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search;
+    const category = req.query.category;
+    const sort = req.query.sort || 'date';
+
+    // Build query
+    let query = {};
+
+    // Add search
+    if (search) {
+      query.$or = [
+        { title: new RegExp(search, 'i') },
+        { story: new RegExp(search, 'i') }
+      ];
+    }
+
+    // Add category filter
+    if (category) {
+      query.category = category;
+    }
+
+    // Calculate skip
     const skip = (page - 1) * limit;
 
-    const stories = await Story.find()
-      .sort({ createdAt: -1 })
+    // Build sort object
+    const sortObj = sort === 'likes' 
+      ? { likeCount: -1 } 
+      : { createdAt: -1 };
+
+    // Execute query with pagination
+    const stories = await Story
+      .find(query)
+      .sort(sortObj)
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const total = await Story.countDocuments();
+    // Get total count for pagination
+    const total = await Story.countDocuments(query);
 
     res.json({
       success: true,
-      stories: stories,
-      total: total,
+      stories,
+      total,
       currentPage: page,
       totalPages: Math.ceil(total / limit)
     });
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching stories',
-      error: error.message
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching stories' 
     });
   }
 });
