@@ -7,19 +7,32 @@ const mongoose = require('mongoose');
 // Get all stories
 router.get('/', async (req, res) => {
   try {
-      const { author } = req.query;
-      const query = author ? { authorName: new RegExp(author, 'i') } : {};
-      
-      const stories = await Story.find(query)
-          .sort({ createdAt: -1 });
-      
-      res.json(stories);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const stories = await Story.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Story.countDocuments();
+
+    res.json({
+      success: true,
+      stories: stories,
+      total: total,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
-      console.error('Get stories error:', error);
-      res.status(500).json({ 
-          message: 'Server error',
-          error: error.message 
-      });
+    console.error('API Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching stories',
+      error: error.message
+    });
   }
 });
 
