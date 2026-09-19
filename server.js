@@ -1,93 +1,42 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config(); // Load environment variables
-console.log('MONGO_URI:', process.env.MONGO_URI); // Debugging: Check if MONGO_URI is loaded
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-
 const { corsOptions, errorHandler, requestLogger } = require('./middleware/middleware');
+const { startNewsletterScheduler } = require('./services/newsletterScheduler');
 
-
-
-// Middleware
 app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(requestLogger);
 
-// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.log('MongoDB connection error:', err));
+  .then(() => {
+    console.log('MongoDB connected');
+    startNewsletterScheduler();
+  })
+  .catch((error) => console.error('MongoDB connection error:', error.message));
 
-// Route
-const storiesRoute = require('./routes/stories'); // Ensure this path is correct
-app.use('/api/stories', storiesRoute); // Corrected route mounting
+app.use('/api/stories', require('./routes/stories'));
+app.use('/api/comments', require('./routes/comments'));
+app.use('/api/ping', require('./routes/ping'));
+app.use('/api/subscribers', require('./routes/subscribers'));
+app.use('/api/search', require('./routes/search'));
 
-const commentsRoute = require('./routes/comments'); // Ensure this path is correct
-app.use('/api/comments', commentsRoute); // Corrected route mounting
-
-const pingRouter = require('./routes/ping');
-
-// Register ping route
-app.use('/api/ping', pingRouter);
-
-const subscribersRoute = require('./routes/subscribers');
-app.use('/api/subscribers', subscribersRoute);
-
-// Import Routes
-const searchRoute = require('./routes/search');
-
-// Use Routes before the 404 handler
-app.use('/api/search', searchRoute);
-
-// Health Check Endpoint
-app.get('/health', async (req, res) => {
-    const dbState = mongoose.connection.readyState;
-    const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
-    res.json({ 
-        status: 'ok',
-        server: 'running', 
-        database: states[dbState] 
-      });
+app.get('/health', (req, res) => {
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  res.json({ status: 'ok', server: 'running', database: states[mongoose.connection.readyState] });
 });
 
-// 404 Handler
 app.use((req, res) => {
-    res.status(404).json({ 
-      success: false,
-      message: `Route ${req.originalUrl} not found`
-    });
-  });
-
-// Global Error Handler
-// app.use((err, req, res, next) => {
-//     console.error(err.stack);
-//     res.status(500).json({ message: 'Something went wrong!' });
-// });
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+});
 
 app.use(errorHandler);
 
-// app.get('/api/ping', (req, res) => {
-//   res.status(200).json({ 
-//     status: 'success',
-//     message: 'Server is alive',
-//     timestamp: new Date().toISOString()
-//   });
-// });
-
-
-
-
-// Import Routes
-// const likeRoutes = require("./routes/likeRoute");
-
-// Use Routes
-// app.use("/api/stories", likeRoutes);
-
-// Start Server
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on ${PORT}`);
+  console.log(`Server is running on ${PORT}`);
 });
